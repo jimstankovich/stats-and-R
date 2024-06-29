@@ -1,0 +1,1017 @@
+---
+title: "Data analysis using R: an introduction"
+author: ""
+date: "23 June 2024"
+format: 
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    number-depth: 2
+    css: styles.css
+editor: visual
+---
+
+```{r}
+#| echo: false
+
+library(RColorBrewer)
+
+colours = brewer.pal(8, "Dark2")
+
+# The code below for writing coloured text comes from
+# https://bookdown.org/yihui/rmarkdown-cookbook/font-color.html
+
+em1 = function(x) {
+  sprintf("<span style='color: %s;'>**%s**</span>", colours[1], x)
+}
+
+em2 = function(x) {
+  sprintf("<span style='color: %s;'>**%s**</span>", colours[2], x)
+}
+  
+em3 = function(x) {
+  sprintf("<span style='color: %s;'>**%s**</span>", colours[3], x)
+}
+```
+
+# About these notes
+
+R is a programming language used by many researchers to analyse data. The aims of these notes are:
+
+-   to give you an understanding of why R is useful for data analysis, and
+-   to encourage you to use R for your research.
+
+In these notes we look at some data on countries around the world based on free material from [GAPMINDER.ORG](https://www.gapminder.org/data/), CC-BY LICENSE.
+
+Some parts of these notes have been taken from parts of a longer course called [R for Reproducible Scientific Analysis](https://swcarpentry.github.io/r-novice-gapminder/), and I have made some modifications. The course *R for Reproducible Scientific Analysis* is Copyright (c) [The Carpentries](https://carpentries.org/). Here is the [license](https://creativecommons.org/licenses/by/4.0/) governing the use of the course.
+
+Half-way through writing these notes, I discovered an excellent online book, called [R for Non-Programmers: A Guide for Social Scientists](https://bookdown.org/daniel_dauber_io/r4np_book/). If I had started the notes sooner, I would have copied many more good ideas from this book as well.
+
+To work through the exercises in these notes, you need two pieces of software installed on your computer:
+
+1.  `r em2("R")`, available [here](https://www.r-project.org/).
+2.  `r em2("RStudio")`, available [here](https://posit.co/download/rstudio-desktop/#download).
+
+Please make sure that you have the latest versions of these installed. If you have any problems installing these, take a look at the instructions in Chapter 3 of [R for Non-Programmers](https://bookdown.org/daniel_dauber_io/r4np_book/setting-up-r-and-rstudio.html).
+
+# Introduction to R and RStudio
+
+## Why use R and R studio?
+
+Research is a multi-step process: once you’ve designed an experiment and collected data, the real fun begins with analysis! In this section, we look at some of the fundamentals of the R language as well as some best practices for organizing code for research projects that will make your life easier.
+
+Although we could use a spreadsheet in Microsoft Excel or Google sheets to analyze our data, these tools are limited in their flexibility and accessibility. Critically, they also are difficult to share steps which explore and change the raw data, which is key to [“reproducible” research](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003285).
+
+Therefore, these notes will help you begin exploring your data using R and RStudio. The R program is available for Windows, Mac, and Linux operating systems, and is a freely-available where you downloaded it above. To run R, all you need is the R program.
+
+However, to make using R easier, we will use the program RStudio, which we also downloaded above. RStudio is a free, open-source, Integrated Development Environment (IDE). It provides a built-in editor, works on all platforms (including on servers) and provides many advantages such as integration with version control and project management.
+
+## Overview
+
+We will begin with raw data, perform exploratory analyses, and learn how to plot results graphically. This example starts with data from gapminder.org, containing yearly statistics for many countries through time. Can you read the data into R? Can you plot the population for Indonesia? Can you calculate the average income for ASEAN countries? By the end of these lessons you will be able to do things like plot the populations for all of these countries in under a minute!
+
+**Basic layout**
+
+When you first open RStudio, you will see three panels:
+
+-   The interactive R console/Terminal (entire left)
+-   Environment/History/Connections (tabbed in upper right)
+-   Files/Plots/Packages/Help/Viewer (tabbed in lower right)
+
+![](images/RStudio_screenshot1.png)
+
+Once you open files, such as R scripts, an editor panel will also open in the top left.
+
+![](images/RStudio_screenshot2.png)
+
+::: callout-tip
+## R Scripts
+
+Any commands that you write in the R console can be saved to a file to be re-run again. Files containing R code to be ran in this way are called R scripts. R scripts have `.R` at the ends of their names to let you know what they are.
+:::
+
+## Workflow within RStudio
+
+There are two main ways you can work in RStudio:
+
+1.  Test and play within the interactive R console then copy code into a .R file to run later.
+
+    -   This works well when doing small tests and initially starting off.
+    -   It quickly becomes laborious
+
+2.  Start writing in a .R file and use RStudio’s short cut keys for the Run command to push the current line, selected lines or modified lines to the interactive R console.
+
+    -   This is a great way to start; all your code is saved for later
+    -   You will be able to run the file you create from within RStudio or R's `source` function.
+
+::: callout-tip
+## Tip: Running Segments of Your Code
+
+RStudio offers you several ways to run code from within the editor window. To run the current line, you can
+
+```         
+1. click on the Run button above the editor panel, or
+2. select “Run Lines” from the “Code” menu, or
+3. hit Ctrl+Return in Windows or Linux or ⌘+Return on OS X. 
+```
+
+To run several lines of code (instead of just one), select the lines first and then use one of these 3 methods.
+:::
+
+## Introduction to R
+
+Much of your time in R will be spent in the R interactive console. This is where you will run all of your code, and can be a useful environment to try out ideas before adding them to an R script file.
+
+The first thing you will see in the R interactive session is a bunch of information, followed by a “\>” and a blinking cursor. Here you type in commands, R tries to execute them, and then returns a result.
+
+## Using R as a calculator
+
+This is the simplest thing you can do with R.
+
+If you type
+
+`1 + 100`
+
+in the console and press return, it shows the answer (101) with `[1]` in front of it:
+
+`[1] 101`
+
+We'll discuss the `[1]` later.
+
+If you type an incomplete command, like
+
+`3 -` (instead of `3 - 2` )
+
+and press return, R will show a
+
+`+`
+
+to indicate that it is expecting something else. If you want to cancel a command you can hit Esc and RStudio will give you back the `>` prompt.
+
+From now on in these notes, we'll show R commands and the results they give like this:
+
+```{r}
+#| class-output: output
+1 + 100
+```
+
+with the R commands in a grey box and the results in a pale purple box. You can copy the R commands by hovering on the right edge of the grey box and clicking on the clipboard. Don't just read the commands... copy and paste them into RStudio, run them for yourself, try changing them, and see what happens!
+
+When using R was a calculator, the order of operations is the same as you learned in school. Things are executed in this order:
+
+-   Brackets `(`, `)`
+-   Raise one number to the power of another number: `^` or `**` (can use either symbol)
+-   Multiply `*` and divide `/`
+-   Add `+` and subtract `-`
+
+For example, compare the difference between
+
+```{r}
+#| class-output: output
+3 + 5 * 2
+```
+
+and
+
+```{r}
+#| class-output: output
+(3 + 5) * 2
+```
+
+Large and small numbers, for example the population of China in 2022 (1.43 billion), are written in scientific notation:
+
+```{r}
+#| class-output: output
+1430000000
+```
+
+`e+09` is another way of writing for "multiplied by 10 to the power 9" (or `*10^9`), and 10 to the power 9 is one billion
+
+```{r}
+#| class-output: output
+1.43 * 10^9
+```
+
+## Functions
+
+R can also do other things you can do with a calculator. For example, to calculate the square-root of 36, type
+
+```{r}
+#| class-output: output
+sqrt(36)
+```
+
+The command `sqrt` is known as a `r em2("function")`. R has many built in functions: some do maths like `sqrt`, and some do other things. To call a function, type its name, followed by opening and closing brackets. Some functions take `r em2("arguments")` as inputs (things typed inside the brackets). For example `sqrt` takes a single number as an argument (36 in the example above), and calculates its square root.
+
+Some functions don't take any arguments:
+
+```{r}
+#| class-output: output
+getRversion() # Check what version of R you are using
+```
+
+```{r}
+#| class-output: output
+getwd() # Check which folder any files will be written in if you decide to save something
+```
+
+(Here we have added *comments* to help explain our R commands. Anything on a line after a `#` is ignored by R, so it is a good place to write comments.)
+
+Other functions take different types of arguments, for example
+
+```{r}
+#| class-output: output
+paste0(1," dog"," and ","1","2", " cats")
+```
+
+This example shows that R works with text as well as numbers.
+
+Don’t worry about trying to remember every function in R. You can look them up on Google, or if you can remember the start of the function’s name, type it and RStudio will provide some suggestions for the end of the name. For example, if you type `sq`, RStudio will list various functions starting with "sq", including `sqrt()`.
+
+Typing a ? before the name of a command will open the *help page* for the command on the bottom right. The help page includes a detailed description of the command and how it works. The bottom of the help page will usually has examples of how to use the command. (This is often the most useful part of the help page!)
+
+## Objects: giving names to pieces of information
+
+A key concept in R, and in any programming language, is to give names to pieces of data. You can give names to single numbers, a bit like `x`'s and `y`'s in algebra you did in high school, or to huge tables of data. Any name (like `x` or `y`) with something assigned to it is called an `r(em2("object"))`.
+
+The `->` symbol is used to assign some data to an object. For example, the command
+
+```{r}
+#| class-output: output
+x <- 9
+```
+
+creates an object called `x`, and sets `x` equal to 9.
+
+To check what value an object has, just type the name of the object:
+
+```{r}
+#| class-output: output
+x
+```
+
+Once `x` has been assigned a value, we can use it for calculations:
+
+```{r}
+#| class-output: output
+x + 3
+sqrt(x)
+x^2 + 2*x + 1
+(x+1)^2
+```
+
+You can also assign a new value to `x`
+
+```{r}
+#| class-output: output
+x <- 42
+x
+```
+
+Note that the command `x <- 42` changes the value of `x`, but it doesn't show us what the new value of `x` is. The `x` on the line below asks R to show us the value of `x`.
+
+You can also change the value of `x` based on what its previous value was:
+
+```{r}
+#| class-output: output
+x <- x + 1
+x
+```
+
+To interpret the command `x <- x + 1`, start on the right. `x + 1` means take the current value of `x` (42) and add 1 to it (43). The arrow pointing to the left says: take the new value you calculated on the right (43) and assign it to the thing on the left (`x`).
+
+If you prefer, you can use longer names for objects that are more informative than `x`, such as
+
+```{r}
+#| class-output: output
+population_of_thailand_2022 <- 71.7 * 10^6
+```
+
+```{r}
+#| class-output: output
+thailandPop22 <- 71.7 * 10^6
+```
+
+These names can only include letters, numbers, `_`, and `.`, and names must start with a letter. So the following names are invalid:
+
+-   `22pop` (cannot start with numbers)
+-   `thailand pop` (cannot have spaces)
+-   `pop-22` (cannot have a `-`)
+
+If you use long names, you don't have to type them in full every time. Once RStudio knows that you have created an object called `population_of_thailand_2022`, it will suggest the full name after you type the first few characters.
+
+::: {.callout-caution appearance="minimal"}
+## Exercise
+
+What are the values of `mass` and `age` after the following commands are run?
+
+```{r}
+#| class-output: output
+mass <- 47.5
+age <- 122
+mass <- mass * 2.3
+age <- age - 20
+```
+:::
+
+::: {.callout-note appearance="minimal" collapse="true"}
+## Click to see the solution
+
+```{r}
+#| class-output: output
+mass <- 47.5
+```
+
+This gives the object `mass` a value of 47.5.
+
+```{r}
+#| class-output: output
+age <- 122
+```
+
+This gives the object `mass` a value of 122.
+
+```{r}
+#| class-output: output
+mass <- mass * 2.3
+```
+
+This takes the existing value of `mass` (47.5) and multiplies it by 2.3 to give it a new value of 109.25.
+
+```{r}
+#| class-output: output
+age <- age - 20
+```
+
+This will subtract 20 from the existing value of 122 to give `age` a new value of 102.
+:::
+
+Objects can store other types of information, not just numbers. For example, they can store text:
+
+```{r}
+#| class-output: output
+name_of_country <- "Thailand"
+```
+
+Objects can also store more than one piece of information, not just a single number or a single piece of text. Two of the most important types of objects in R with multiple pieces of information are `r em2("vectors")` and `r em2("data.frames")`.
+
+## Vectors
+
+A `r em2("vector")` is an object containing a list of things, where everything in list has the same basic data type. For example, everything in the vector can be a piece of text, or everything can be a number.
+
+We can create vectors by using the R function `c()`, which "combines" or "concatenates" pieces of information. For example, here is a command to create a vector with 10 pieces of information: the names of the 10 ASEAN countries
+
+```{r}
+#| class-output: output
+ASEAN_countries <- c("Brunei","Cambodia","Indonesia",
+                     "Lao","Myanmar","Malaysia","Philippines",
+                     "Singapore","Thailand","Vietnam")
+ASEAN_countries
+```
+
+```{r}
+#| class-output: output
+numbers_less_than_10 <- c(1,2,3,4,5,6,7,8,9)
+numbers_less_than_10
+```
+
+```{r}
+#| class-output: output
+claims_made_by_Australian_politician <- c(F,F,F,T,F)
+claims_made_by_Australian_politician
+```
+
+Note that you can use F and T as abbreviations for FALSE and TRUE.
+
+R has special notation (`:`) to make lists of consecutive numbers:
+
+```{r}
+#| class-output: output
+numbers_less_than_10 <- 1:9
+numbers_less_than_10
+```
+
+Note the `[6]` in the vector `ASEAN_countries`. This indicates that `"Malaysia"` is the 6th element of the vector (and the `[1]` indicates that `"Brunei"` is the 1st element of the vector). We can use square brackets to refer to individual elements of vectors
+
+```{r}
+#| class-output: output
+ASEAN_countries[6]
+ASEAN_countries[3]
+```
+
+or subsets of vectors
+
+```{r}
+#| class-output: output
+countries_sharing_borders_with_Thailand <- ASEAN_countries[c(2,4:6)]
+countries_sharing_borders_with_Thailand
+countries_on_Mekong_River <- ASEAN_countries[c(2,4,5,9,10)]
+countries_on_Mekong_River
+```
+
+Some numerical operations can be applied to vectors of numbers, just as they are applied to individual numbers:
+
+```{r}
+#| class-output: output
+numbers_less_than_10 + 3
+even_numbers <- numbers_less_than_10 * 2
+even_numbers
+square_numbers <- numbers_less_than_10 * numbers_less_than_10
+square_numbers
+```
+
+## Joining vectors of the same length to make a `data.frame`
+
+If we have 2 or more vectors of the same length, we can join them to make a table of data with multiple columns, one vector in each column, like something you might enter into a spreadsheet. In R, a table of data is called a `r em2("data.frame")`. To make a `data.frame`, lets combine our vector `ASEAN_countries` with a vector of [national dishes](https://aseanzone.wordpress.com/cultural/136-2/):
+
+```{r}
+#| class-output: output
+national_dish <- c("ambuyat", "amok", "gado-gado", "chicken soup", "lahpet", "nasi lemak", "adobo", "laksa", "tom yum goong", "nem")
+national_dish
+```
+
+We can double-check that the two vectors `ASEAN_countries` and `national_dish` have the same length, using a function called `length()`:
+
+```{r}
+#| class-output: output
+length(ASEAN_countries)
+length(national_dish)
+```
+
+and join the vectors together to make a `data.frame`, which we'll call `ASEAN_info`:
+
+```{r}
+#| class-output: output
+ASEAN_info <- data.frame(ASEAN_countries, national_dish)
+ASEAN_info
+```
+
+I would prefer to call the first column (or vector) `country` instead of `ASEAN_countries`. So let's change the name of this column using R's `colnames()` function:
+
+```{r}
+#| class-output: output
+colnames(ASEAN_info)
+colnames(ASEAN_info)[1] <- "country"
+ASEAN_info
+```
+
+We can select individual vectors in our data.frame by writing the vector's name after the name of the data.frame, separated by `$`:
+
+```{r}
+#| class-output: output
+ASEAN_info$country
+ASEAN_info$national_dish
+```
+
+## Checking whether statements are TRUE or FALSE
+
+R can check whether particular statements are TRUE or FALSE. This is very useful for selecting rows of large data.frames meeting particular conditions.
+
+For example, we can check whether
+
+```{r}
+#| class-output: output
+5 > 4
+```
+
+or
+
+```{r}
+#| class-output: output
+sqrt(49) < 7
+```
+
+As well as the comparisons "greater than" (`>`) and "less than" (`<`), we can also make the comparisons
+
+-   `>=` (greater than or equal to)
+-   `<=` (less than or equal to)
+-   `==` (equal to)
+-   `!=` (not equal to)
+
+These comparisons can be applied to vectors as well as individual variables. The comparisons `==` (equal to) and `!=` (not equal to) can also be applied to text as well as numbers.
+
+For example
+
+```{r}
+#| class-output: output
+y <- ASEAN_countries != "Singapore"
+z <- ASEAN_countries == "Vietnam"
+data.frame(ASEAN_info, y, z)
+
+over50 <- square_numbers > 50
+data.frame(square_numbers, over50)
+```
+
+Another useful option of checking whether something is TRUE or FALSE is to use the operator `%in%`. You can use this to check whether a particular value is in a vector, or which elements of one vector are in another vector. For example
+
+```{r}
+#| class-output: output
+"Brunei" %in% ASEAN_countries
+"East Timor" %in% ASEAN_countries
+is_square_number <- numbers_less_than_10 %in% square_numbers
+data.frame(numbers_less_than_10, is_square_number)
+```
+
+We can use `%in%` to add a column to our `ASEAN_info` data.frame, showing which ASEAN countries the Mekong River runs through:
+
+```{r}
+#| class-output: output
+on_Mekong_River <- ASEAN_countries %in% countries_on_Mekong_River
+ASEAN_info <- data.frame(ASEAN_info, on_Mekong_River)
+ASEAN_info
+```
+
+## R packages
+
+It is possible to add functions to R by writing a `r em2("package")`, or by obtaining a package written by someone else. Packages are sometimes also called `r em2("libraries")`. There are over 10,000 packages in a public collection called CRAN (the comprehensive R archive network). R and RStudio have functionality for managing packages:
+
+-   You can see what packages are installed by typing `installed.packages()`
+-   You can install packages by typing `install.packages("packagename")`, where `packagename` is the package name, in quotes.
+-   You can update installed packages by typing `update.packages()`
+-   You can remove a package with `remove.packages("packagename")`
+-   You can make a package available for use with `library(packagename)`
+
+Packages can also be viewed, loaded, and detached in the Packages tab of the lower right panel in RStudio. Clicking on this tab will display all of the installed packages with a checkbox next to them. If the box next to a package name is checked, the package is loaded and if it is empty, the package is not loaded. Click an empty box to load that package and click a checked box to detach that package.
+
+Packages can be installed and updated from the Package tab with the Install and Update buttons at the top of the tab.
+
+Below we will discuss 3 packages with some very useful functions:
+
+-   `dplyr` for working with data.frames and managing data
+-   `readr` for loading datasets into R from spreadsheets
+-   `ggplot2` for making graphs
+
+But before we can use these packages, we need to install them.
+
+::: {.callout-caution appearance="minimal"}
+## Exercise
+
+Install the packages `dplyr`, `readr`and `ggplot2`.
+:::
+
+::: {.callout-note appearance="minimal" collapse="true"}
+## Click to see the solution
+
+We can use the `install.packages()` command to install the required packages.
+
+```{r}
+#| eval: false
+
+install.packages("readr")
+install.packages("dplyr")
+install.packages("ggplot2")
+```
+:::
+
+## Loading data with the `readr` package
+
+Let's load a small CSV file with some Gapminder data for 10 ASEAN countries. We will use the package `readr` to do this.
+
+I have put the CSV file on the internet here:
+
+`https://github.com/jimstankovich/stats-and-R/blob/main/asean_data.csv`
+
+There are two ways you can load the data into R. You can either download it onto your computer first (Method 1), or you can load it into R directly from the website.
+
+### Method 1: Download the data onto your computer, then load it from your computer into R
+
+-   Go to the URL (website) above.
+
+-   Hover on the little arrow pointing down on the right. The words "Download raw file" will appear in a black box. ![](images/Github_screenshot.png)
+
+-   Click on this arrow to download the CSV file.
+
+-   Find where the file was downloaded on your computer, and move it to a folder where you want to keep it.
+
+-   In the "Files" window of RStudio (bottom right), navigate to the folder where you put the data, select the file, and choose "Import Dataset..." ![](images/find_the_data_in_RStudio.png)
+
+-   A new window appears, giving you some options to control how you open the file. In this case the default settings are fine... you don't need to change anything. So just click "Import" on the bottom right to load the data. Note that the 3 R commands which will be run appear in a box on the bottom right. ![](images/data_loading_options.png)
+
+-   These 3 commands run in the Console window on the bottom left. The folder in the second line will be different on your computer (not the same as `~/Documents/Research Methodology in Social Sciences/introduction_to_R/data/`), depending on where you put the file `asean_2022_data.csv`.
+
+-   Copy these 3 commands to your .R file so you can run them automatically next time, without having to open windows and click in them. This makes your analysis more "reproducible".
+
+Let's have a look at the 3 commands and what they do:
+
+1.  `library(readr)`: The `library()` function makes the package `readr` available for use (as discussed in Section 2.8 above).
+
+2.  `asean_data <- read_csv("[path_to_folder]/asean_data.csv")`: The function `read_csv` is part of the `readr` package. Here it reads the CSV file `asean_data.csv` into R's memory and gives it the name `asean_data`. (We could call it something else if we wanted to.) Some information appears in the Console window about the data. The `country` column has text information (character or "chr" for short). The other 4 columns (`year`, `pop`, `lifeExp`, `gdpPercap`) have numerical information (stored as "double-precision" numbers, or "dbl" for short... don't worry about this computer science terminology if you haven't heard it before).
+
+![](images/description_of_data_that_was_loaded.png)
+
+3.  `View(asean_data)`: This command opens a spreadsheet-style view of the data on the top-left. If you close this window the data is stored in R... it is just a "view" of the data.
+
+![](images/data_View.png)
+
+When you load the data, `asean_data` also appears in the "Environment" window on the top-right. If you click the little blue arrow, it provides some information on the variables in the data:
+
+![](images/environment.png)
+
+In summary, 3 of the 4 windows in RStudio are showing similar information about the data we have just loaded. :) It is up to you to decide which way(s) of looking at the data are most helpful.
+
+```{r}
+#| echo: false
+#| output: false
+library(readr)
+asean_data <- read_csv("~/Documents/Research Methodology in Social Sciences/introduction_to_R/data/asean_data.csv")
+```
+
+Yet another way to look at the data is to type the name of the dataset in the Console window:
+
+```{r}
+#| class-output: output
+asean_data
+```
+
+### Method 2: Download the data directly into R from the internet
+
+Starting at the same URL as before (`https://github.com/jimstankovich/stats-and-R/blob/main/asean_data.csv`), click on the word "Raw" on the top right. This takes you take another webpage with the "raw" (unformatted) CSV data. You can use the `read_csv` command to load the data from this webpage:
+
+```{r}
+#| output: false
+library(readr)
+asean_data <- read_csv("https://raw.githubusercontent.com/jimstankovich/stats-and-R/main/asean_data.csv")
+```
+
+Method 2 is fine for the small dataset we are looking at here. However, if you are running your R commands many times and working with a large dataset, it is better to download the dataset onto your computer first (Method 1), rather than downloading a large dataset many times.
+
+## Using the dplyr package to look at the `asean_data`
+
+I use the `dplyr` package more than any other packages. It is very useful for managing datasets: cleaning them, joining them, and extracting smaller sections for statistical analysis.
+
+Let's have a look at how a few `dplyr` functions can be used to work with the `asean_data` we have just loaded.
+
+Suppose we want to know the total population of the 10 ASEAN countries in 2022. We can do this by adding up the values of `pop` in the rows from 2022. Let's do this in 2 steps
+
+1.  Create a smaller dataset that only includes rows with 2022 data.
+2.  Add up the values in the column/vector `pop`.
+
+For step 1, `dplyr` has a command called `filter()` for selecting particular rows of a dataset. The `filter()` command takes two arguments
+
+-   the name of a data.frame
+-   a condition to satisfy: only include rows where this condition is TRUE
+
+```{r}
+#| class-output: output
+library(dplyr)
+asean_2022 <- filter(asean_data, year == 2022)
+asean_2022
+```
+
+Lot's of `dplyr` functions take the name of the data.frame as the first argument. There is an alternative notation for running these functions, where you put the name of the data.frame before the function, then join it to the function using the symbol `%>%`
+
+```{r}
+#| class-output: output
+library(dplyr)
+asean_2022 <- asean_data %>%
+  filter(year == 2022)
+asean_2022
+```
+
+I think this notation makes it clearer that we are starting with the `asean_data` data.frame, then applying the `filter()` function to make changes to it and produce `asean_2022`.
+
+The `%>%` notation is particularly good when you want to apply several functions to a data.frame. Below are two pieces of code that do the same thing... which do you think is easier to read?
+
+```{r}
+#| class-output: output
+large_wealthy_country <- 
+  filter(filter(filter(asean_data, year == 2022), 
+         gdpPercap > 20000), pop > 10e6)  # 10e6 is 10 million 
+large_wealthy_country
+```
+
+```{r}
+#| class-output: output
+large_wealthy_country <- asean_data %>%
+  filter(year == 2022) %>%
+  filter(gdpPercap > 20000) %>%
+  filter(pop > 10e6)  # 10e6 is 10 million
+large_wealthy_country
+```
+
+Now we can use the `sum()` function to add up the values of `pop` in `asean_2022`:
+
+```{r}
+#| class-output: output
+asean_pop_2022 <- sum(asean_2022$pop)
+asean_pop_2022
+```
+
+So the total population of the ASEAN countries in 2022 was nearly 681 million. The function `sum()` is part of "base R"... you don't need to load `dplyr` to use it.
+
+Suppose we want to calculate the average GDP (Gross Domestic Product) per person, averaged across all 681 million people living in ASEAN countries. (If you are interested, the GDP figures in this dataset are in 2017 (inflation-adjusted) US dollars at [purchasing power parity](https://en.wikipedia.org/wiki/Purchasing_power_parity))
+
+Here are the steps for calculating average GDP:
+
+-   calculate the total GDP for each country
+-   add up total GDP across countries
+-   divide total ASEAN GDP by the ASEAN population
+
+Total GDP for each country is equal to the country's population multiplied by GDP per person (per capita). Let's add a `total_gdp` column to the `asean_2022` data.frame using a `dplyr` command called `mutate()`:
+
+```{r}
+#| class-output: output
+asean_2022 <- asean_2022 %>%
+  mutate(gdp = pop * gdpPercap)
+asean_2022
+```
+
+Then we can add up `total_gdp` across countries using the `sum()` function again:
+
+```{r}
+#| class-output: output
+asean_gdp_2022 = sum(asean_2022$gdp)
+asean_gdp_2022
+```
+
+and calculate
+
+```{r}
+#| class-output: output
+asean_gdp_per_capita_2022 <- asean_gdp_2022 / asean_pop_2022
+asean_gdp_per_capita_2022
+```
+
+Here is some `dplyr` code that starts with our original CSV file (`asean_data`), and generates a summary of the 2022 population and GDP statistics for the whole of ASEAN.
+
+```{r}
+#| class-output: output
+asean_2022_summary <- asean_data %>%
+  filter(year == 2022) %>%
+  mutate(gdp = pop * gdpPercap) %>%
+  summarise(
+    pop = sum(pop),
+    total_gdp = sum(gdp),
+    gdpPercap = total_gdp / pop)
+asean_2022_summary
+```
+
+It uses `filter()` and `mutate()` in the same way we've seen before. There is also a new command `summarise()`.
+
+If we wanted these statistics for both 2012 and 2022, we could remove the `filter()` function, keep data for both year, and instead apply another function `group_by()` before `summarise()`, to generate summaries for both years at the same time.
+
+```{r}
+#| class-output: output
+asean_gdp_summary <- asean_data %>%
+  mutate(gdp = pop * gdpPercap) %>%
+  group_by(year) %>%
+  summarise(
+    pop = sum(pop),
+    total_gdp = sum(gdp),
+    gdpPercap = total_gdp / pop)
+asean_gdp_summary
+```
+
+I don't think the `total_gdp` column is very useful... trillions of dollars seem to big to understand. We can select columns to keep using another `dplyr` command, `select()`:
+
+```{r}
+#| class-output: output
+asean_gdp_summary %>%
+  select(year, pop, gdpPercap)
+```
+
+Or we can exclude particular columns by putting a `-` in front of their names:
+
+```{r}
+#| class-output: output
+asean_gdp_summary %>%
+  select(-total_gdp)
+```
+
+Maybe you're more interested in health than money. If so, you could modify these calculations to calculate average life expectancy across ASEAN countries instead of per capita GDP. All that you need to change is, instead of multiplying per capita GDP by population, multiply life expectancy by population to give "life expectancy times population", or "letp" for short.
+
+```{r}
+#| class-output: output
+asean_lifeExp <- asean_data %>%
+  mutate(letp = pop * lifeExp) %>%
+  group_by(year) %>%
+  summarise(
+    pop = sum(pop),
+    letp = sum(letp),
+    lifeExp = letp / pop) %>%
+  select(-letp)
+asean_lifeExp
+```
+
+## Plotting data with the `ggplot2` package
+
+I have to confess: I find this package hard to use...
+
+### Bar graphs
+
+https://r-graph-gallery.com/218-basic-barplots-with-ggplot2.html
+
+http://www.sthda.com/english/wiki/ggplot2-title-main-axis-and-legend-titles
+
+https://stackoverflow.com/questions/15629192/making-a-bar-chart-in-ggplot-with-vertical-labels-in-x-axis
+
+https://www.r-bloggers.com/2021/09/adding-text-labels-to-ggplot2-bar-chart/
+
+```{r}
+#| class-output: output
+library(ggplot2)
+ggplot(asean_2022, aes(x=country, y=lifeExp)) +
+  geom_bar(fill = "dodgerblue3", stat = "identity") +
+  ylab("Life expectancy at birth (2022)") +
+  geom_text(aes(label = lifeExp, vjust = 1.2)) + 
+  theme_light() + 
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+```
+
+https://rpubs.com/dvdunne/ggplot_two_bars
+
+```{r}
+#| class-output: output
+library(ggplot2)
+ggplot(asean_data, aes(x=country, y=lifeExp, fill=year)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  ylab("Life expectancy at birth") +
+  theme_light() + 
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+```
+
+This is not what we want! Need to convert year to a categorical variable (called a factor in R)
+
+```{r}
+#| class-output: output
+asean_data <- asean_data %>%
+  mutate(year = as.factor(year))
+ggplot(asean_data, aes(x=country, y=lifeExp, fill=year)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  ylab("Life expectancy at birth") +
+  theme_light() + 
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+```
+
+```{r}
+#| class-output: output
+life_exp_table <- asean_data %>%
+  arrange(year) %>%
+  group_by(country) %>%
+  summarise(
+    le2012 = first(lifeExp),
+    le2022 = last(lifeExp),
+    le_change = le2022 - le2012)
+```
+
+https://ggplot2.tidyverse.org/reference/lims.html
+
+```{r}
+#| class-output: output
+library(ggplot2)
+ggplot(life_exp_table, aes(x=country, y=le_change)) +
+  geom_bar(fill = "dodgerblue3", stat = "identity") +
+  ylab("change in life expectancy (years), 2012 -> 2022") +
+  geom_text(aes(label = round(le_change,1), vjust = -1)) + 
+  theme_light() + 
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
+  ylim(-1, 4.5)
+```
+
+### Line graphs showing changes in a variable over time
+
+```{r}
+#| class-output: output
+#| warning: false
+big_gapminder_dataset <- read_csv("~/Documents/Research Methodology in Social Sciences/introduction_to_R/data/big_gapminder_dataset.csv",
+        show_col_types = FALSE)
+
+lifeExp_since_1900 <- big_gapminder_dataset %>% 
+  filter(year >= 1900 & year <= 2022) %>%
+  select(country, continent, year, lifeExp) %>%
+  mutate(asean = country %in% ASEAN_countries)
+
+asean_lifexp_since_1900 <- lifeExp_since_1900 %>%
+  filter(asean == TRUE)
+
+other_countries <- lifeExp_since_1900 %>%
+  filter(asean == FALSE)
+
+# Palette good for people who are colour-blind
+# https://stackoverflow.com/questions/9563711/r-color-palettes-for-many-data-classes
+colours1 <- c("#88CCEE", "#CC6677", "#DDCC77", "#117733",
+             "#332288", "#AA4499", "#44AA99", "#999933",
+             "#882255", "#661100")
+
+# Another palette from top of the same chat
+colours2 <- c(
+  "dodgerblue2", "#E31A1C", # red
+  "green4",
+  "#6A3D9A", # purple
+  "#FF7F00", # orange
+  "black", "gold1",
+  "skyblue2", "#FB9A99", # lt pink
+  "palegreen2")
+
+
+ggplot(data = asean_lifexp_since_1900, mapping = aes(x=year, y=lifeExp, group=country, color=country)) +
+  geom_line() +
+  scale_color_manual(values = colours2) + 
+  ylab("Life expectancy at birth")
+
+# https://stackoverflow.com/questions/40297206/overlaying-two-plots-using-ggplot2-in-r
+ggplot(data = other_countries, 
+       mapping = aes(x=year, y=lifeExp, group=country)) +
+  geom_line(col = rgb(0.8,0.8,0.8,0.5)) +
+  geom_line(data = asean_lifexp_since_1900, 
+            mapping = aes(x=year, y=lifeExp, group=country,
+                          color=country)) +
+  scale_color_manual(values = colours2) + 
+  ylab("Life expectancy at birth")
+```
+
+### Scatterplots (plot of 2 continuous variables against each other)
+
+```{r}
+#| class-output: output
+asean_2022 %>%
+  ggplot(aes(x=gdpPercap, y=lifeExp)) +
+  geom_point(col = "dodgerblue", size = 3) +
+  xlab("GDP per capita, 2022 (purchasing power parity, 2017 US dollars)") +
+  ylab("life expectancy at birth, 2022") +
+  theme_light()
+```
+
+## Scatterplot with different sized symbols
+
+(sometimes called a bubble plot)
+
+https://www.datanovia.com/en/blog/how-to-remove-legend-from-a-ggplot/
+
+```{r}
+#| class-output: output
+asean_2022 %>%
+  ggplot(aes(x=gdpPercap, y=lifeExp, size=pop)) +
+  geom_point(col = "dodgerblue", alpha=0.5) +
+  scale_size(range = c(2, 24), name="Population") +
+  scale_x_log10(limits = c(2500, 170000)) +
+  ylim(65,87) + 
+  xlab("GDP per capita, 2022 (purchasing power parity, 2017 US dollars)") +
+  ylab("life expectancy at birth, 2022") +
+  geom_text(aes(x=gdpPercap, y=lifeExp, label = country, size = 5*10^6, vjust = -1)) +
+  theme_light() +
+  theme(legend.position = "none")
+```
+
+Make a rough match of the plot at https://www.gapminder.org/tools/
+
+```{r}
+#| class-output: output
+#| warning: false
+big_gapminder_dataset <- read_csv("~/Documents/Research Methodology in Social Sciences/introduction_to_R/data/big_gapminder_dataset.csv",
+        show_col_types = FALSE)
+
+world_2022 <- big_gapminder_dataset %>%
+  filter(year == "2022") %>%
+  filter(country != "Monaco") %>% 
+  arrange(desc(pop))
+
+world_2022 %>%
+  ggplot(aes(x=gdpPercap, y=lifeExp, size=pop, col=continent)) +
+  geom_point(alpha=0.5) +
+  scale_size(range = c(.1, 24), name="Population") +
+  scale_x_continuous(trans='log10') +
+  guides(size = "none") + 
+  theme_light() +
+  xlab("GDP per capita, 2022 (purchasing power parity, 2017 US dollars)") +
+  ylab("life expectancy at birth, 2022")
+```
+
+```{r}
+#| class-output: output
+#| warning: false
+
+# Reproduce the hover feature with the plotly package
+# and match the continent colours more closely
+
+library(plotly)
+
+continent_colours <- data.frame(
+  continent = c("Africa", "Americas", "Asia", "Europe"),
+  colour = c("rgba(95,210,230,1)", "rgba(154,231,71,1)",
+             "rgba(237,100,117,1)", "rgba(251,230,77,1)")
+)
+
+# Plotly doesn't handle rows with missing data as well as ggplot2
+# Remove these rows explicitly...
+world_2022v2 <- world_2022 %>%
+  filter(!is.na(lifeExp) & !is.na(gdpPercap) & !is.na(pop)) %>%
+  left_join(continent_colours)
+
+#https://plotly.com/r/bubble-charts/
+fig <- plot_ly(world_2022v2, x = ~gdpPercap, y = ~lifeExp, text = ~country,
+               type = "scatter", mode = "markers",
+               marker = list(size = ~(sqrt((pop)/300000)+0.2), 
+                             opacity = 0.8, color = ~colour))
+#https://plotly.com/r/figure-labels/
+fig <- fig %>% 
+  layout(fig, 
+         title = "2022 Gapminder data",
+         xaxis = list(
+           type = "log", 
+           title = "GDP per capita (purchasing power parity, 2017 US dollars)"),
+         yaxis = list(title = "life expectancy at birth"))
+
+fig
+```
